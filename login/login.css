@@ -1,0 +1,179 @@
+body{
+    background-color: #4e73df;
+    display:  flex;
+    justify-content: center;
+    align-items: center;
+   height: 90vh;
+}
+.x{
+    height: 450px;
+    width: 900px;
+    background: #fff;
+    border-width: 0px;
+    border-color: #fff;
+    border-style: solid;
+    display: flex;
+    border-radius: 20px;
+}
+.image{
+    position: relative;
+}
+.base-image{
+    display: block;
+    border-radius: 20px 0px 0px 20px;
+}
+.logo {
+    position: absolute; 
+    top: 10%; 
+    right: 18%;
+    transform: translate(-50%, -50%); 
+}
+.y {
+    position: relative;
+    width: 500px; 
+    left: 100px;
+    margin-top: 20px;
+    font-family: serif;
+}
+.input-field {
+    position: relative;
+    padding: 8px;
+    font-size: 18px;
+    width: 70%;
+    border: 2px solid #ccc; 
+    border-radius: 20px; 
+    box-sizing: border-box;
+    transition: border-color 0.3s ease; 
+     right: 30px;
+    top: 20px;
+   font-family: palatino;
+  
+}
+
+.input-field:focus {
+    outline: none; 
+    border-color: #4e73df; 
+    box-shadow: 0 0 5px rgba(78, 115, 223, 0.5); 
+    background-color: #c1d0ff;
+}
+.input-button {
+    position: relative;
+    padding: 9px 20px;
+    font-size: 18px;
+    width: 70%;
+    border: 2px solid #4e73df;
+    border-radius: 20px;
+    background-color: #4e73df;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    right: 30px;
+   
+}
+
+.input-button:hover {
+    background-color: #2e59d9;
+}
+.line {
+    position: relative;
+    width: 70%; 
+    right: 30px;
+    border: 0; 
+    border-top: 2px solid #eae5e5; 
+    margin: 15px 3px; 
+}
+.centered-text{
+    margin: 10px 0px 60px 60px ;
+}
+.P{
+    margin: 20px 30px 20px -25px  ;
+}
+.remember-forgot{
+    margin: 0px 0px 0px -25px  ;
+
+}
+.error-message {
+    color: red;
+    margin: 10px 0px 0px  30px;
+} 
+
+@media only screen and (max-width: 990px) {
+    .image {
+        display: none; /* Cache l'image sur les téléphones */
+    }
+    .x{
+        width: 400px;
+    }
+    .centered-text{
+        margin: 10px 0px 50px 50px ;
+    }
+    .P{
+        margin: 20px 30px 20px -62px  ;
+    }
+    .input-field {
+        width: 78%;
+        right: 65px;      
+    }
+    .input-button {
+        width: 78%;
+        right: 65px;
+    }
+    .line {
+        width: 78%; 
+        right: 65px;
+    }
+    .centered-text{
+        margin: 10px 0px 60px 30px ;
+    }
+    .remember-forgot{
+        margin: 0px 0px 0px -62px  ;
+    
+    }
+    .error-message{
+        margin: 10px 0px 0px 0px;
+    }
+} 
+
+@media only screen and (max-width: 400px) {
+    .x {
+        width: 90%; /* Ajustez la largeur pour s'adapter aux petits écrans */
+        overflow: hidden;
+    }
+    .image {
+        display: none; /* Cachez l'image sur les petits écrans */
+    }
+    .y {
+        width: 90%; /* Ajustez la largeur du formulaire */
+        left: 5%; /* Réinitialisez la position du formulaire */
+    }
+    .P {
+        margin: 20px 0px; /* Ajustez les marges du titre */
+        text-align: center; /* Centrez le titre */
+        word-wrap: break-word;
+    }
+    .input-field,
+    .input-button,
+    .line {
+        width: 100%; /* Ajustez la largeur des champs et boutons */
+        right: auto; /* Réinitialisez la position droite */
+
+    }
+    .centered-text,
+    .remember-forgot {
+        display: block;
+        margin: 10px 0px; /* Ajustez les marges */
+        text-align: center; /* Centrez le texte */
+    }
+    .input-button,
+    .centered-text {
+        display: block; /* Assurez-vous que ces éléments sont visibles */
+        text-align: center; /* Centrez le texte si nécessaire */
+        margin: 5px 0; /* Ajustez les marges pour une meilleure disposition */
+    }
+    .logo{
+        display: none;
+    }
+    .error-message{
+        margin: 10px 0px 0px 50px;
+    }
+}
