@@ -67,22 +67,23 @@ session_start();
         <h1 class="choose-semestre">Choisir un semestre</h1>
         <?php
          $students_query = "
-         SELECT m.semestre AS semesters
-         FROM mdule m
-          JOIN utilisateur u ON u.niveau = .niveau_id 
+         SELECT distinct m.semestre
+         FROM module m
+            JOIN utilisateur u ON u.niveau = m.niveau_id 
          WHERE u.role = 'etudiant' 
-         ORDER BY u.nom ASC
+         ORDER BY u.nom Desc
      ";
-     $stmt = $con->prepare($students_query);
-     $stmt->bind_param('ii', $module_id, $niveau_id);
-     $stmt->execute();
-     $students_result = $stmt->get_result();
+     $students_result = mysqli_query($con, $students_query);
+        $semesters = [];
+        while ($sem = mysqli_fetch_assoc($students_result)) {
+            $semesters[] = $sem;
+        }
         echo '<table class="semestre-table">';
         echo '<tr><th>Semestre</th><th>Action</th></tr>';
         foreach ($semesters as $sem) {
             echo '<tr>';
-            echo '<td>Semestre ' . $sem . '</td>';
-            echo '<td><a class="semestre-link" href="indexnote.php?semester=' . $sem . '">Voir modules</a></td>';
+            echo '<td>Semestre ' . $sem['semestre'] . '</td>';
+            echo '<td><a class="semestre-link" href="indexnote.php?semester=' . $sem['semestre'] . '">Voir modules</a></td>';
             echo '</tr>';
         }
         echo '</table>';

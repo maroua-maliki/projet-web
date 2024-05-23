@@ -10,10 +10,10 @@ if(isset($_SESSION['id'])) {
     header("Location: ../login.php");
     exit; 
 }
-$subjects_query = "SELECT  module.nom AS nom , a.id AS id , module.id AS module_id
-FROM affectation_module_professeur AS a
-INNER JOIN module ON a.module_id = module.id
-WHERE a.professeur_id='$prof_id' ORDER BY nom ASC";
+$subjects_query = "SELECT  m.nom , a.id, m.id
+FROM affectation_module_professeur a
+INNER JOIN module m ON a.module_id = m.id
+WHERE a.professeur_id='$prof_id' ORDER BY m.nom ASC";
 $subjects_result = mysqli_query($con, $subjects_query);
 $subjects = [];
 while ($subject = mysqli_fetch_assoc($subjects_result)) {

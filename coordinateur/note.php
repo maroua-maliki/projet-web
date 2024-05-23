@@ -1,58 +1,40 @@
 <?php
-if(session_status() === PHP_SESSION_NONE) {
+if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-if(isset($_SESSION['id'])) {
+if (isset($_SESSION['id'])) {
     $prof_id = $_SESSION['id'];
 } else {
     header("Location: ../login.php");
-    exit; 
+    exit;
 }
 
 include("../connect.php");
 
 $success_message = "";
 $error_message = "";
+include($_SERVER['DOCUMENT_ROOT'] . '/ENSAHify/Database.php');
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    if (isset($_POST['module_id']) && isset($_POST['notes']) && isset($_POST['action'])) {
-        $module_id = $_POST['module_id'];
-
-        // Efface les notes associées au module
-        $stmt = $con->prepare("DELETE FROM note WHERE module_id = ?");
-        $stmt->bind_param('i', $module_id);
-        if (!$stmt->execute()) {
-            $error_message = "Error clearing table: " . $stmt->error;
+    if (isset($_POST["action"])) {
+        $data = array();
+        $id_module = $_POST['module_id'];
+        $qr = mysqli_query($con, "SELECT n.*
+                                FROM note n
+                                WHERE n.module_id = '$id_module'
+                                and n.action = 'ajouter'; ");
+        while ($row = mysqli_fetch_assoc($qr)) {
+            array_push($data, $row);
         }
 
-        // Traiter la soumission du formulaire pour enregistrer les notes
-        $notes = $_POST['notes'];
-        $action = $_POST['action'];
-
-        foreach ($notes as $student_id => $note) {
-            $query = "INSERT INTO note (module_id, etudiant_id, note, action) 
-                      VALUES (?, ?, ?, ?) 
-                      ON DUPLICATE KEY UPDATE note=?, action=?";
-            $stmt = $con->prepare($query);
-            if ($stmt === false) {
-                $error_message = "Error preparing statement: " . $con->error;
-                continue;
-            }
-            $stmt->bind_param('iiisis', $module_id, $student_id, $note, $action, $note, $action);
-            if (!$stmt->execute()) {
-                $error_message = "Error executing statement: " . $stmt->error;
-            }
+        foreach ($data as $d) {
+            $update_query = "UPDATE note SET action = 'terminer' WHERE module_id = '$id_module'";
+            mysqli_query($con, $update_query);
         }
 
-        if (empty($error_message)) {
-            if ($action == 'ajouter') {
-                $success_message = "Les notes ont été ajoutées avec succès.";
-            } elseif ($action == 'sauvegarder') {
-                $success_message = "Les notes ont été sauvegardées avec succès.";
-            }
-        }
+        $_SESSION['message'] = "1";
     } else {
-        $error_message = "Error: Module ID, notes, or action not set.";
+        $_SESSION['message'][] = "0";
     }
 }
 
@@ -70,7 +52,7 @@ if (isset($_GET['module_id'])) {
 
     // Fetch students enrolled in the level
     $students_query = "
-        SELECT u.id, u.nom, u.prenom, u.CNE, n.note , n.action AS action
+        SELECT u.id, u.nom, u.prenom, u.CNE, n.note ,n.etudiant_id ,n.action AS action
         FROM utilisateur u
         LEFT JOIN note n ON u.id = n.etudiant_id AND n.module_id = ?
         WHERE u.role = 'etudiant' AND u.niveau = ? 
@@ -111,12 +93,19 @@ if (isset($_GET['module_id'])) {
         .fixed-width {
             width: 20%; /* Adjust the width as needed */
         }
+        .student-group-form{
+            border: 2px solid #ffffff; /* White border for the table */
+            border-radius: 8px; /* Rounded corners */
+            padding: 20px; /* Padding around the table */
+            background-color: #f8f9fa; /* Light background color */
+            box-shadow: 0 0
+        }
     </style>
 </head>
 <body>
-<?php 
-    include("sidebar.php");
-    include("../navbar/navbar.php");
+<?php
+include("sidebar.php");
+include("../navbar/navbar.php");
 ?>
 <div class="container mt-4">
     <div class="table-container">
@@ -132,9 +121,24 @@ if (isset($_GET['module_id'])) {
                 <?php echo $error_message; ?>
             </div>
         <?php endif; ?>
-        <form action="note.php?module_id=<?php echo htmlspecialchars($module_id); ?>" method="POST">
+
+        <div class="student-group-form">
+            <div class="row">
+                <div class="col-lg-3 col-md-6">
+                    <div class="form-group">
+                        <input type="text" class="form-control" id="myInputCNE" onkeyup="myFunction()" placeholder="Search by CNE...">
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="form-group">
+                        <input type="text" class="form-control" id="myInputName" onkeyup="myFunction()" placeholder="Search by Name ...">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <form action="" method="POST">
             <input type="hidden" name="module_id" value="<?php echo htmlspecialchars($module_id); ?>">
-            <table class="table text-start">
+            <table class="table text-start" id="myTable">
                 <thead class="table-primary">
                     <tr>
                         <th scope="col" class="fixed-width">CNE</th>
@@ -145,27 +149,54 @@ if (isset($_GET['module_id'])) {
                 </thead>
                 <tbody>
                     <?php
+                    $set = 0;
                     while ($row = $students_result->fetch_assoc()) {
+                        if ($row["action"] == 'terminer') $set = 1;
                         echo '<tr>';
                         echo '<td class="fixed-width">' . htmlspecialchars($row["CNE"]) . '</td>';
                         echo '<td class="fixed-width">' . htmlspecialchars($row["nom"]) . '</td>';
                         echo '<td class="fixed-width">' . htmlspecialchars($row["prenom"]) . '</td>';
-                        if (htmlspecialchars($row["action"]) == 'ajouter') {
+                        if (htmlspecialchars(($row["action"] == 'ajouter') || ($row["action"] == 'terminer'))) {
                             echo '<td class="fixed-width">' . htmlspecialchars($row["note"]) . '</td>';
                         } else {
                             echo '<td class="fixed-width"></td>';
                         }
-                        
+
                         echo '</tr>';
                     }
-                    
+
                     ?>
                 </tbody>
             </table>
-            <button type="submit" name="action" value="terminer" class="btn btn-danger">Valider</button>
+            <button <?php echo $set == 1 ? "hidden" : ""; ?> type="submit" name="action" value="terminer" class="btn btn-danger">Valider</button>
         </form>
     </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0sG1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+<script>
+    function myFunction() {
+        var inputName, inputCNE, filterName, filterCNE, table, tr, tdName, tdCNE, i, txtValueName, txtValueCNE;
+        inputName = document.getElementById("myInputName");
+        inputCNE = document.getElementById("myInputCNE");
+        filterName = inputName.value.toUpperCase();
+        filterCNE = inputCNE.value.toUpperCase();
+        table = document.getElementById("myTable");
+        tr = table.getElementsByTagName("tr");
+
+        for (i = 0; i < tr.length; i++) {
+            tdName = tr[i].getElementsByTagName("td")[1];
+            tdCNE = tr[i].getElementsByTagName("td")[0]; // Corrected index for CNE
+            if (tdName && tdCNE) {
+                txtValueName = tdName.textContent || tdName.innerText;
+                txtValueCNE = tdCNE.textContent || tdCNE.innerText;
+                if (txtValueName.toUpperCase().indexOf(filterName) > -1 && txtValueCNE.toUpperCase().indexOf(filterCNE) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    }
+</script>
 </body>
 </html>
