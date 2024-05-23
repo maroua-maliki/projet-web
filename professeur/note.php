@@ -111,6 +111,14 @@ if (isset($_GET['module_id'])) {
         .fixed-width {
             width: 20%; /* Adjust the width as needed */
         }
+        .student-group-form{
+            border: 2px solid #ffffff; /* White border for the table */
+            border-radius: 8px; /* Rounded corners */
+            padding: 20px; /* Padding around the table */
+            background-color: #f8f9fa; /* Light background color */
+            box-shadow: 0;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -119,7 +127,7 @@ if (isset($_GET['module_id'])) {
     include("../navbar/navbar.php");
 ?>
 <div class="container mt-4">
-    <div class="table-container"  style="max-height: 400px; overflow-y: auto;">
+    <div class="table-container" style="max-height: 400px; overflow-y: auto;">
         <h2>Notes des Étudiants</h2>
         <br>
         <?php if (!empty($success_message)): ?>
@@ -132,9 +140,23 @@ if (isset($_GET['module_id'])) {
                 <?php echo $error_message; ?>
             </div>
         <?php endif; ?>
+        <div class="student-group-form">
+            <div class="row">
+                <div class="col-lg-3 col-md-6">
+                    <div class="form-group">
+                        <input type="text" class="form-control" id="myInputCNE" onkeyup="myFunction()" placeholder="Search by CNE...">
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="form-group">
+                        <input type="text" class="form-control" id="myInputName" onkeyup="myFunction()" placeholder="Search by Name ...">
+                    </div>
+                </div>
+            </div>
+        </div>
         <form action="note.php?module_id=<?php echo htmlspecialchars($module_id); ?>" method="POST">
             <input type="hidden" name="module_id" value="<?php echo htmlspecialchars($module_id); ?>">
-            <table class="table text-start">
+            <table class="table text-start" id="myTable">
                 <thead class="table-primary">
                     <tr>
                         <th scope="col" class="fixed-width">CNE</th>
@@ -145,13 +167,15 @@ if (isset($_GET['module_id'])) {
                 </thead>
                 <tbody>
                     <?php
+                    $set = 0;
                     while ($row = $students_result->fetch_assoc()) {
                         echo '<tr>';
                         echo '<td class="fixed-width">' . htmlspecialchars($row["CNE"]) . '</td>';
                         echo '<td class="fixed-width">' . htmlspecialchars($row["nom"]) . '</td>';
                         echo '<td class="fixed-width">' . htmlspecialchars($row["prenom"]) . '</td>';
                         echo '<td class="fixed-width"><input type="text" name="notes[' . htmlspecialchars($row["id"]) . ']" class="form-control" value="' . htmlspecialchars($row["note"]) . '"';
-                        if ($row["action"]=="ajouter") {
+                        if ($row["action"] == "ajouter") {
+                            $set = 2;
                             echo ' readonly';
                         }
                         echo '></td>';
@@ -160,11 +184,36 @@ if (isset($_GET['module_id'])) {
                     ?>
                 </tbody>
             </table>
-            <button type="submit" name="action" value="sauvegarder" class="btn btn-success">Sauvegarder</button>
-            <button type="submit" name="action" value="ajouter" class="btn btn-danger">Valider</button>
+            <button <?php if ($set == 2) echo 'hidden'; ?> type="submit" name="action" value="sauvegarder" class="btn btn-success">Sauvegarder</button>
+            <button <?php if ($set == 2) echo 'hidden'; ?> type="submit" name="action" value="ajouter" class="btn btn-danger">Valider</button>
         </form>
     </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+<script>
+    function myFunction() {
+        var inputName, inputCNE, filterName, filterCNE, table, tr, tdName, tdCNE, i, txtValueName, txtValueCNE;
+        inputName = document.getElementById("myInputName");
+        inputCNE = document.getElementById("myInputCNE");
+        filterName = inputName.value.toUpperCase();
+        filterCNE = inputCNE.value.toUpperCase();
+        table = document.getElementById("myTable");
+        tr = table.getElementsByTagName("tr");
+
+        for (i = 0; i < tr.length; i++) {
+            tdName = tr[i].getElementsByTagName("td")[1]; // Index changed to 1 for Nom
+            tdCNE = tr[i].getElementsByTagName("td")[0]; // Index changed to 0 for CNE
+            if (tdName && tdCNE) {
+                txtValueName = tdName.textContent || tdName.innerText;
+                txtValueCNE = tdCNE.textContent || tdCNE.innerText;
+                if (txtValueName.toUpperCase().indexOf(filterName) > -1 && txtValueCNE.toUpperCase().indexOf(filterCNE) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    }
+</script>
 </body>
 </html>
